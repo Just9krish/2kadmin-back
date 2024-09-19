@@ -20,6 +20,8 @@ app.use('/', express.static('uploads'));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 // Import routes
+const admin = require('./routes/admin.routes');
+const user = require('./routes/user.routes');
 
 // default check route
 app.get('/', (_, res) => {
@@ -27,6 +29,8 @@ app.get('/', (_, res) => {
 });
 
 // Routes
+app.use('/api/v1/admin', admin);
+app.use('/api/v1/user', user);
 
 // Catch-all route handler for unmatched routes
 app.use((req, res, next) => {
