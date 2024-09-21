@@ -40,7 +40,7 @@ exports.adminLogin = catchAsyncError(async (req, res, next) => {
     code: 200,
     status: true,
     message: 'Admin logged in successfully',
-    data: token,
+    data: { token },
   });
 });
 
@@ -109,6 +109,5 @@ exports.verifyOtp = catchAsyncError(async (req, res, next) => {
     code: 200,
     status: true,
     message: 'Password reset successful',
-    data: null,
   });
 });

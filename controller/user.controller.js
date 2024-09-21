@@ -28,7 +28,7 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
     res,
     status: true,
     code: 201,
-    data: user,
+    data: { user },
     message: 'User created successfully',
   });
 });
@@ -63,7 +63,7 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
     res,
     status: true,
     code: 200,
-    data: user,
+    data: { user },
     message: 'User updated successfully',
   });
 });
@@ -89,22 +89,38 @@ exports.deleteUser = catchAsyncError(async (req, res, next) => {
 
 // get all users
 exports.getAllUsers = catchAsyncError(async (req, res, next) => {
-  const { type } = req.body;
+  const { type, limit = 10, page = 1 } = req.body;
 
   if (!type) {
+    return next(new ErrorHandler('Please provide user type', 400));
   }
 
   if (type && !USER_TYPE.includes(type.toString().trim())) {
     return next(new ErrorHandler('Invalid user type', 400));
   }
 
-  const users = await userModel.find({ type: type.toString().trim() });
+  const userCount = await userModel.countDocuments({
+    type: type.toString().trim(),
+  });
+
+  const users = await userModel
+    .find({ type: type.toString().trim() })
+    .limit(limit)
+    .skip(limit * (page - 1));
+
+  const hasmore = userCount > limit * page;
 
   sendResponse({
     res,
     status: true,
     code: 200,
-    data: users,
+    data: {
+      list: users,
+      total: userCount,
+      hasmore,
+      page,
+      limit,
+    },
     message: 'Users fetched successfully',
   });
 });
@@ -123,7 +139,7 @@ exports.getUser = catchAsyncError(async (req, res, next) => {
     res,
     status: true,
     code: 200,
-    data: user,
+    data: { user },
     message: 'User fetched successfully',
   });
 });

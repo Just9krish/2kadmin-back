@@ -10,7 +10,7 @@ class ErrorHandler extends Error {
    * @param {number} statusCode - The status code associated with the error.
    * @param {any[]} data - Optional data associated with the error.
    */
-  constructor(message, statusCode, data = []) {
+  constructor(message, statusCode, data = null) {
     super(message);
     this.statusCode = statusCode;
     this.data = data;

@@ -10,12 +10,12 @@
  * @param {string} options.message - The message to send in the response.
  */
 const sendResponse = ({ res, status, code, data, message }) => {
-  const responseData = Array.isArray(data) ? data : [data]; // Wrap data in an array if it's not already
+  // Wrap data in an array if it's not already
   res.status(code).json({
     success: status,
     code,
     message,
-    data: responseData,
+    data,
   });
 };
 
