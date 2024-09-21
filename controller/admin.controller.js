@@ -1,3 +1,4 @@
+const { checkValidEmail } = require('../helper');
 const catchAsyncError = require('../middleware/catchAsyncError');
 const adminModel = require('../models/admin.model');
 const ErrorHandler = require('../utils/errorHandler');
@@ -14,7 +15,7 @@ exports.adminLogin = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler('Please enter a valid email', 400));
   }
 
-  const admin = adminModel.findOne({ email });
+  const admin = await adminModel.findOne({ email });
 
   if (!admin) {
     return next(new ErrorHandler('Invalid email or password', 400));
@@ -41,6 +42,32 @@ exports.adminLogin = catchAsyncError(async (req, res, next) => {
     status: true,
     message: 'Admin logged in successfully',
     data: { token },
+  });
+});
+
+// Sign up
+exports.signUp = catchAsyncError(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return next(new ErrorHandler('Please provide email, and password', 400));
+  }
+
+  if (!checkValidEmail(email)) {
+    return next(new ErrorHandler('Please enter a valid email', 400));
+  }
+
+  const admin = await adminModel.create({
+    email,
+    password,
+  });
+
+  sendResponse({
+    res,
+    code: 201,
+    status: true,
+    message: 'Admin created successfully',
+    data: { admin },
   });
 });
 

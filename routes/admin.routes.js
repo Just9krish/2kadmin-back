@@ -2,11 +2,14 @@ const {
   adminLogin,
   forgotPassword,
   verifyOtp,
+  signUp,
 } = require('../controller/admin.controller');
 
 const router = require('express').Router();
 
 router.post('/login', adminLogin);
+
+router.post('/signup', signUp);
 
 router.post('/forgotPassword', forgotPassword);
 
