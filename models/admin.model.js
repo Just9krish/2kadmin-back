@@ -17,8 +17,8 @@ const adminSchema = new mongoose.Schema({
     default: '',
   },
   otp_expiry: {
-    type: Date,
-    default: '',
+    type: Date, // Date type for OTP expiry
+    default: null,
   },
 });
 

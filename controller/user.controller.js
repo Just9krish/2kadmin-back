@@ -1,22 +1,21 @@
 const catchAsyncError = require('../middleware/catchAsyncError');
-
 const { USER_TYPE } = require('../constant');
 const userModel = require('../models/user.model');
 const sendResponse = require('../utils/sendResponse');
+const ErrorHandler = require('../utils/errorHandler');
 
+// create user
 exports.createUser = catchAsyncError(async (req, res, next) => {
   const { name, email, type } = req.body;
 
   // Validate input data
   if (!name || !email || !type) {
-    return res
-      .status(400)
-      .json({ error: 'Please provide name, email, and type' });
+    return next(new ErrorHandler('Please provide name, email, and type', 400));
   }
 
   // check valid type
   if (!USER_TYPE.includes(type.toString().trim())) {
-    return res.status(400).json({ error: 'Invalid user type' });
+    return next(new ErrorHandler('Invalid user type', 400));
   }
 
   const user = await userModel.create({
@@ -34,20 +33,20 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
   });
 });
 
+// update user
 exports.updateUser = catchAsyncError(async (req, res, next) => {
-  const { id } = req.params;
-  const { name, email, type } = req.body;
+  const { name, email, type, userId: id } = req.body;
 
   // Validate input data
-  if (!name || !email || !type) {
-    return res
-      .status(400)
-      .json({ error: 'Please provide name, email, and type' });
+  if (!name || !email || !type || !id) {
+    return next(
+      new ErrorHandler('Please provide name, email, type, and user id', 400)
+    );
   }
 
   // check valid type
   if (!USER_TYPE.includes(type.toString().trim())) {
-    return res.status(400).json({ error: 'Invalid user type' });
+    return next(new ErrorHandler('Invalid user type', 400));
   }
 
   const user = await userModel.findByIdAndUpdate(
@@ -69,8 +68,14 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
   });
 });
 
+// delete user
 exports.deleteUser = catchAsyncError(async (req, res, next) => {
-  const { id } = req.params;
+  const { userId: id } = req.body;
+
+  // Validate input data
+  if (!id) {
+    return next(new ErrorHandler('Please provide user id', 400));
+  }
 
   await userModel.findByIdAndDelete(id);
 
@@ -82,8 +87,18 @@ exports.deleteUser = catchAsyncError(async (req, res, next) => {
   });
 });
 
+// get all users
 exports.getAllUsers = catchAsyncError(async (req, res, next) => {
-  const users = await userModel.find();
+  const { type } = req.body;
+
+  if (!type) {
+  }
+
+  if (type && !USER_TYPE.includes(type.toString().trim())) {
+    return next(new ErrorHandler('Invalid user type', 400));
+  }
+
+  const users = await userModel.find({ type: type.toString().trim() });
 
   sendResponse({
     res,
@@ -94,8 +109,9 @@ exports.getAllUsers = catchAsyncError(async (req, res, next) => {
   });
 });
 
+// get user
 exports.getUser = catchAsyncError(async (req, res, next) => {
-  const { id } = req.params;
+  const { userId: id } = req.body;
 
   const user = await userModel.findById(id);
 

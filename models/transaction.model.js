@@ -5,12 +5,16 @@ const transactionSchema = new mongoose.Schema(
     supplier: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User', // supplier reference
-      required: true,
+      required: function () {
+        return this.customer === null; // Required only if it's a buy transaction
+      },
     },
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User', // customer reference
-      required: true,
+      required: function () {
+        return this.supplier === null; // Required only if it's a sell transaction
+      },
     },
     material: {
       type: String,
