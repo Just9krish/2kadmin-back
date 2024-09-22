@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema(
   {
+    transactionType: {
+      type: String,
+      enum: ['BUY', 'SELL'], // Can either be "BUY" or "SELL"
+      required: true,
+    },
     supplier: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User', // supplier reference
@@ -14,6 +19,12 @@ const transactionSchema = new mongoose.Schema(
       ref: 'User', // customer reference
       required: function () {
         return this.supplier === null; // Required only if it's a sell transaction
+      },
+    },
+    crusherNo: {
+      type: String,
+      required: function () {
+        return this.transactionType === 'BUY'; // Crusher number required only for buy transactions
       },
     },
     material: {

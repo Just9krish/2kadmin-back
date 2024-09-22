@@ -22,6 +22,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 // Import routes
 const admin = require('./routes/admin.routes');
 const user = require('./routes/user.routes');
+const transaction = require('./routes/transaction.routes');
 
 // default check route
 app.get('/', (_, res) => {
@@ -31,6 +32,7 @@ app.get('/', (_, res) => {
 // Routes
 app.use('/api/v1/admin', admin);
 app.use('/api/v1/users', user);
+app.use('/api/v1/transactions', transaction);
 
 // Catch-all route handler for unmatched routes
 app.use((req, res, next) => {
