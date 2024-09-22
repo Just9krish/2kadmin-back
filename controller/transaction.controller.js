@@ -2,6 +2,7 @@ const sendResponse = require('../utils/sendResponse');
 const ErrorHandler = require('../utils/errorHandler');
 const catchAsyncError = require('../middleware/catchAsyncError');
 const transactionModel = require('../models/transaction.model');
+const userModel = require('../models/user.model');
 
 // Create a new Transaction (Buy or Sell)
 exports.createTransaction = catchAsyncError(async (req, res, next) => {
@@ -16,24 +17,31 @@ exports.createTransaction = catchAsyncError(async (req, res, next) => {
     location,
     amountPaid,
     pendingAmount,
+    transactionType,
+    crusherNo,
   } = req.body;
 
-  if (
-    !supplier ||
-    !customer ||
-    !material ||
-    !quantity ||
-    !rate ||
-    !passNumber ||
-    !vehicleNumber ||
-    !location
-  ) {
-    return next(new ErrorHandler('Please provide all required fields', 400));
+  if (!['BUY', 'SELL'].includes(transactionType)) {
+    return next(new ErrorHandler('Invalid transaction type', 400));
+  }
+
+  if (transactionType === 'BUY' && !supplier) {
+    return next(
+      new ErrorHandler('Supplier is required for BUY transactions', 400)
+    );
+  }
+
+  // Validate customer for SELL transactions
+  if (transactionType === 'SELL' && !customer) {
+    return next(
+      new ErrorHandler('Customer is required for SELL transactions', 400)
+    );
   }
 
   const transaction = new transactionModel({
-    supplier: supplier || null,
-    customer: customer || null,
+    supplier: transactionType === 'BUY' ? supplier : null,
+    customer: transactionType === 'SELL' ? customer : null,
+    crusherNo: transactionType === 'BUY' ? crusherNo : null,
     material,
     quantity,
     rate,
@@ -42,25 +50,30 @@ exports.createTransaction = catchAsyncError(async (req, res, next) => {
     location,
     amountPaid,
     pendingAmount,
-    transactionType: req.body.transactionType || 'BUY',
-    crusherNo: req.body.crusherNo || null,
+    transactionType: transactionType || 'BUY',
   });
 
   await transaction.save();
 
   // Update customer or supplier balance based on the transaction
   if (customer) {
-    await User.findByIdAndUpdate(customer, {
+    await userModel.findByIdAndUpdate(customer, {
       $inc: { balance: amountPaid, pending: pendingAmount },
     });
   } else if (supplier) {
-    await User.findByIdAndUpdate(supplier, {
+    await userModel.findByIdAndUpdate(supplier, {
       $inc: { balance: -amountPaid, pending: pendingAmount },
     });
   }
 
-  sendResponse(res, 201, 'Transaction created successfully', {
-    transaction,
+  sendResponse({
+    res,
+    status: true,
+    code: 200,
+    message: `Transaction ${transactionType}ed successfully`,
+    data: {
+      transaction,
+    },
   });
 });
 
@@ -78,7 +91,15 @@ exports.getSingleTransaction = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler('Transaction not found', 404));
   }
 
-  sendResponse(res, 200, 'Transaction found', { transaction });
+  sendResponse({
+    res,
+    status: true,
+    code: 200,
+    message: 'Transaction fetched successfully',
+    data: {
+      transaction,
+    },
+  });
 });
 
 // Get All Transactions
@@ -113,7 +134,8 @@ exports.getAllTransactions = catchAsyncError(async (req, res, next) => {
   // Send the response with transaction data
   sendResponse({
     res,
-    statusCode: 200,
+    status: true,
+    code: 200,
     message: 'Transactions fetched successfully',
     data: {
       list: transactions,
@@ -122,5 +144,64 @@ exports.getAllTransactions = catchAsyncError(async (req, res, next) => {
       page,
       total: count,
     },
+  });
+});
+
+// update transaction
+exports.updateTransaction = catchAsyncError(async (req, res, next) => {
+  const { transactionId, updateData } = req.body;
+
+  if (!transactionId) {
+    return next(new ErrorHandler('Please provide transaction Id', 400));
+  }
+
+  if (
+    !updateData ||
+    typeof updateData !== 'object' ||
+    Object.keys(updateData).length === 0
+  ) {
+    return next(new ErrorHandler('No fields provided to update', 400));
+  }
+
+  const transaction = await transactionModel.findById(transactionId);
+  if (!transaction) {
+    return next(new ErrorHandler('Transaction not found', 404));
+  }
+
+  Object.keys(updateData).forEach((key) => {
+    if (updateData[key] !== undefined && updateData[key] !== null) {
+      transaction[key] = updateData[key];
+    }
+  });
+
+  await transaction.save();
+
+  sendResponse({
+    res,
+    status: true,
+    code: 200,
+    message: 'Transaction updated successfully',
+    data: {
+      transaction,
+    },
+  });
+});
+
+// Delete Transction by id
+exports.deleteTransaction = catchAsyncError(async (req, res, next) => {
+  const { transactionId } = req.body;
+  if (!transactionId) {
+    return next(new ErrorHandler('Please provide transaction Id', 400));
+  }
+  const transaction = await transactionModel.findByIdAndDelete(transactionId);
+  if (!transaction) {
+    return next(new ErrorHandler('Transaction not found', 404));
+  }
+
+  sendResponse({
+    res,
+    status: true,
+    code: 200,
+    message: 'Transaction deleted successfully',
   });
 });
