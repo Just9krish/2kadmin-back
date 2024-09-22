@@ -53,6 +53,5 @@ module.exports = (err, req, res, next) => {
     success: false,
     code: errorObject.code,
     message: errorObject.message,
-    data: [],
   });
 };

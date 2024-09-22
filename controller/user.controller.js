@@ -6,11 +6,11 @@ const ErrorHandler = require('../utils/errorHandler');
 
 // create user
 exports.createUser = catchAsyncError(async (req, res, next) => {
-  const { name, email, type } = req.body;
+  const { name, number, type } = req.body;
 
   // Validate input data
-  if (!name || !email || !type) {
-    return next(new ErrorHandler('Please provide name, email, and type', 400));
+  if (!name || !number || !type) {
+    return next(new ErrorHandler('Please provide name, number, and type', 400));
   }
 
   // check valid type
@@ -18,9 +18,18 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler('Invalid user type', 400));
   }
 
+  // check if user already exists
+  const userExists = await userModel.findOne({
+    number,
+  });
+
+  if (userExists) {
+    return next(new ErrorHandler('User already exists', 400));
+  }
+
   const user = await userModel.create({
     name,
-    email,
+    number,
     type: type.toString().trim(),
   });
 
@@ -29,18 +38,18 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
     status: true,
     code: 201,
     data: { user },
-    message: 'User created successfully',
+    message: `${type} created successfully`,
   });
 });
 
 // update user
 exports.updateUser = catchAsyncError(async (req, res, next) => {
-  const { name, email, type, userId: id } = req.body;
+  const { name, number, type, userId: id } = req.body;
 
   // Validate input data
-  if (!name || !email || !type || !id) {
+  if (!name || !number || !type || !id) {
     return next(
-      new ErrorHandler('Please provide name, email, type, and user id', 400)
+      new ErrorHandler('Please provide name, number, type, and user id', 400)
     );
   }
 
@@ -53,7 +62,7 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
     id,
     {
       name,
-      email,
+      number,
       type: type.toString().trim(),
     },
     { new: true }
@@ -64,7 +73,7 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
     status: true,
     code: 200,
     data: { user },
-    message: 'User updated successfully',
+    message: `${type} updated successfully`,
   });
 });
 
@@ -121,7 +130,7 @@ exports.getAllUsers = catchAsyncError(async (req, res, next) => {
       page,
       limit,
     },
-    message: 'Users fetched successfully',
+    message: `${type} fetched successfully`,
   });
 });
 

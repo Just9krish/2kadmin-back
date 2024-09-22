@@ -30,7 +30,7 @@ app.get('/', (_, res) => {
 
 // Routes
 app.use('/api/v1/admin', admin);
-app.use('/api/v1/user', user);
+app.use('/api/v1/users', user);
 
 // Catch-all route handler for unmatched routes
 app.use((req, res, next) => {

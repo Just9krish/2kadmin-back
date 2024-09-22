@@ -3,6 +3,7 @@ const {
   getUser,
   deleteUser,
   updateUser,
+  getAllUsers,
 } = require('../controller/user.controller');
 const { isVerify } = require('../middleware/auth');
 
@@ -15,5 +16,7 @@ router.post('/gerSingleUserbyId', isVerify, getUser);
 router.post('/deleteUserById', isVerify, deleteUser);
 
 router.post('/updateUser', isVerify, updateUser);
+
+router.post('/getAllUser', isVerify, getAllUsers);
 
 module.exports = router;
