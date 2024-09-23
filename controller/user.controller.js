@@ -98,27 +98,43 @@ exports.deleteUser = catchAsyncError(async (req, res, next) => {
 
 // get all users
 exports.getAllUsers = catchAsyncError(async (req, res, next) => {
-  const { type, limit = 10, page = 1 } = req.body;
+  const { type, limit = 10, page = 1, searchInput, sortOrder = 'desc' } = req.body;
 
-  if (!type) {
-    return next(new ErrorHandler('Please provide user type', 400));
-  }
+  const pageNum = parseInt(page) || 1;
+  const limitNum = parseInt(limit) || 10;
 
   if (type && !USER_TYPE.includes(type.toString().trim())) {
     return next(new ErrorHandler('Invalid user type', 400));
   }
 
-  const userCount = await userModel.countDocuments({
-    type: type.toString().trim(),
-  });
+  let query = {};
+
+  if (searchInput?.trim()) {
+    query = {
+      $or: [
+        { name: { $regex: searchInput, $options: 'i' } },
+        { number: { $regex: searchInput, $options: 'i' } },
+      ],
+    };
+  }
+
+  if (type) {
+    query = { ...query, type: type.toString().trim() };
+  }
+
+  const sortOptions = { createdAt: sortOrder === 'asc' ? 1 : -1 };
+
+  const userCount = await userModel.countDocuments(query);
 
   const users = await userModel
-    .find({ type: type.toString().trim() })
-    .limit(limit)
-    .skip(limit * (page - 1));
+    .find(query)
+    .sort(sortOptions)
+    .limit(limitNum)
+    .skip(limitNum * (pageNum - 1));
 
-  const hasmore = userCount > limit * page;
+  const hasMore = userCount > limitNum * pageNum;
 
+  // Send response
   sendResponse({
     res,
     status: true,
@@ -126,11 +142,11 @@ exports.getAllUsers = catchAsyncError(async (req, res, next) => {
     data: {
       list: users,
       total: userCount,
-      hasmore,
-      page,
-      limit,
+      hasMore,
+      page: pageNum,
+      limit: limitNum,
     },
-    message: `${type} fetched successfully`,
+    message: `${type ? type + ' users' : 'Users'} fetched successfully`,
   });
 });
 
