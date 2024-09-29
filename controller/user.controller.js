@@ -98,7 +98,13 @@ exports.deleteUser = catchAsyncError(async (req, res, next) => {
 
 // get all users
 exports.getAllUsers = catchAsyncError(async (req, res, next) => {
-  const { type, limit = 10, page = 1, searchInput, sortOrder = 'desc' } = req.body;
+  const {
+    type,
+    limit = 10,
+    page = 1,
+    searchInput,
+    sortOrder = 'desc',
+  } = req.body;
 
   const pageNum = parseInt(page) || 1;
   const limitNum = parseInt(limit) || 10;

@@ -16,9 +16,10 @@ exports.createTransaction = catchAsyncError(async (req, res, next) => {
     vehicleNumber,
     location,
     amountPaid,
-    pendingAmount,
     transactionType,
     crusherNo,
+    totalAmount,
+    pendingAmount,
   } = req.body;
 
   if (!['BUY', 'SELL'].includes(transactionType)) {
@@ -38,6 +39,45 @@ exports.createTransaction = catchAsyncError(async (req, res, next) => {
     );
   }
 
+  // Calculate totalAmount from rate * quantity
+  const calculatedTotalAmount = parseFloat(rate) * parseFloat(quantity);
+
+  // Check if totalAmount is negative
+  if (calculatedTotalAmount <= 0) {
+    return next(
+      new ErrorHandler('Total amount should be a positive number', 400)
+    );
+  }
+
+  // Check if provided totalAmount matches the calculated value
+  if (calculatedTotalAmount !== totalAmount) {
+    return next(
+      new ErrorHandler(
+        'Provided total amount does not match the calculated total amount',
+        400
+      )
+    );
+  }
+
+  // Calculate pendingAmount as totalAmount - amountPaid
+  const calculatedPendingAmount = totalAmount - amountPaid;
+
+  // Check if pendingAmount is negative
+  if (calculatedPendingAmount < 0) {
+    return next(new ErrorHandler('Pending amount cannot be negative', 400));
+  }
+
+  // Check if provided pendingAmount matches the calculated value
+  if (calculatedPendingAmount !== pendingAmount) {
+    return next(
+      new ErrorHandler(
+        'Provided pending amount does not match the calculated pending amount',
+        400
+      )
+    );
+  }
+
+  // Create the transaction object
   const transaction = new transactionModel({
     supplier: transactionType === 'BUY' ? supplier : null,
     customer: transactionType === 'SELL' ? customer : null,
@@ -49,20 +89,20 @@ exports.createTransaction = catchAsyncError(async (req, res, next) => {
     vehicleNumber,
     location,
     amountPaid,
-    pendingAmount,
-    transactionType: transactionType || 'BUY',
+    pendingAmount: calculatedPendingAmount,
+    totalAmount: calculatedTotalAmount,
+    transactionType: transactionType === 'BUY' ? 'BUY' : 'SELL',
   });
 
   await transaction.save();
 
-  // Update customer or supplier balance based on the transaction
-  if (customer) {
+  if (transactionType === 'SELL' && customer) {
     await userModel.findByIdAndUpdate(customer, {
-      $inc: { balance: amountPaid, pending: pendingAmount },
+      $inc: { pending: calculatedPendingAmount },
     });
-  } else if (supplier) {
+  } else if (transactionType === 'BUY' && supplier) {
     await userModel.findByIdAndUpdate(supplier, {
-      $inc: { balance: -amountPaid, pending: pendingAmount },
+      $inc: { pending: calculatedPendingAmount },
     });
   }
 
@@ -70,7 +110,7 @@ exports.createTransaction = catchAsyncError(async (req, res, next) => {
     res,
     status: true,
     code: 200,
-    message: `Transaction ${transactionType}ed successfully`,
+    message: `Transaction ${transactionType}ED successfully`,
     data: {
       transaction,
     },

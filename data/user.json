@@ -1,0 +1,82 @@
+[
+  {
+    "name": "John Doe",
+    "number": "+1234567890",
+    "type": "customer"
+  },
+  {
+    "name": "Jane Smith",
+    "number": "+0987654321",
+    "type": "supplier"
+  },
+  {
+    "name": "David Brown",
+    "number": "+1357924680",
+    "type": "customer"
+  },
+  {
+    "name": "Eve Johnson",
+    "number": "+1122334455",
+    "type": "supplier"
+  },
+  {
+    "name": "Mike Davis",
+    "number": "+1415161718",
+    "type": "customer"
+  },
+  {
+    "name": "Sarah Wilson",
+    "number": "+9876543210",
+    "type": "supplier"
+  },
+  {
+    "name": "Alex Anderson",
+    "number": "+1234567890",
+    "type": "customer"
+  },
+  {
+    "name": "Emily Taylor",
+    "number": "+0987654321",
+    "type": "supplier"
+  },
+  {
+    "name": "Michael Clark",
+    "number": "+1357924680",
+    "type": "customer"
+  },
+  {
+    "name": "Olivia Davis",
+    "number": "+1122334455",
+    "type": "supplier"
+  },
+  {
+    "name": "William Brown",
+    "number": "+1415161718",
+    "type": "customer"
+  },
+  {
+    "name": "Sophia Johnson",
+    "number": "+9876543210",
+    "type": "supplier"
+  },
+  {
+    "name": "Daniel Wilson",
+    "number": "+1234567890",
+    "type": "customer"
+  },
+  {
+    "name": "Emma Taylor",
+    "number": "+0987654321",
+    "type": "supplier"
+  },
+  {
+    "name": "James Clark",
+    "number": "+1357924680",
+    "type": "customer"
+  },
+  {
+    "name": "Ava Davis",
+    "number": "+1122334455",
+    "type": "supplier"
+  }
+]

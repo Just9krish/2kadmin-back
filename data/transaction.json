@@ -1,0 +1,46 @@
+[
+  {
+    "material": "Sand",
+    "quantity": 100,
+    "rate": 50,
+    "passNumber": "PASS123",
+    "vehicleNumber": "TN10AB1234",
+    "location": "Warehouse A",
+    "amountPaid": 4000,
+    "pendingAmount": 1000,
+    "totalAmount": 5000
+  },
+  {
+    "material": "Gravel",
+    "quantity": 50,
+    "rate": 80,
+    "passNumber": "PASS124",
+    "vehicleNumber": "TN08XY5678",
+    "location": "Warehouse B",
+    "amountPaid": 3000,
+    "pendingAmount": 1000,
+    "totalAmount": 4000
+  },
+  {
+    "material": "Cement",
+    "quantity": 200,
+    "rate": 100,
+    "passNumber": "PASS125",
+    "vehicleNumber": "TN12CD7890",
+    "location": "Construction Site A",
+    "amountPaid": 15000,
+    "pendingAmount": 5000,
+    "totalAmount": 20000
+  },
+  {
+    "material": "Concrete",
+    "quantity": 75,
+    "rate": 90,
+    "passNumber": "PASS126",
+    "vehicleNumber": "TN15EF3456",
+    "location": "Factory Site",
+    "amountPaid": 5000,
+    "pendingAmount": 2000,
+    "totalAmount": 7000
+  }
+]

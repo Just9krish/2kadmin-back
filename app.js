@@ -24,6 +24,7 @@ const admin = require('./routes/admin.routes');
 const user = require('./routes/user.routes');
 const transaction = require('./routes/transaction.routes');
 const dashboard = require('./routes/dashboard.routes');
+const seed = require('./seed/index');
 
 // default check route
 app.get('/', (_, res) => {
@@ -35,6 +36,7 @@ app.use('/api/v1/admin', admin);
 app.use('/api/v1/users', user);
 app.use('/api/v1/transactions', transaction);
 app.use('/api/v1/dashboard', dashboard);
+app.use('/api/v1/seed', seed);
 
 // Catch-all route handler for unmatched routes
 app.use((req, res, next) => {

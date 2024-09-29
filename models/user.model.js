@@ -16,10 +16,6 @@ const userSchema = new mongoose.Schema(
       enum: ['customer', 'supplier'],
       required: true,
     },
-    balance: {
-      type: Number,
-      default: 0,
-    },
     pending: {
       type: Number,
       default: 0,
