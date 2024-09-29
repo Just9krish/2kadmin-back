@@ -144,7 +144,20 @@ exports.getSingleTransaction = catchAsyncError(async (req, res, next) => {
 
 // Get All Transactions
 exports.getAllTransactions = catchAsyncError(async (req, res, next) => {
-  const { userId, type, limit = 10, page = 1 } = req.body;
+  const {
+    userId,
+    type,
+    minTotalAmount,
+    maxTotalAmount,
+    minQuantity,
+    maxQuantity,
+    startDate,
+    endDate,
+    sortBy = 'createdAt',
+    order = 'desc',
+    limit = 10,
+    page = 1,
+  } = req.body;
 
   let query = {};
 
@@ -158,11 +171,39 @@ exports.getAllTransactions = catchAsyncError(async (req, res, next) => {
     query.$or = [{ customer: userId }, { supplier: userId }];
   }
 
+  // Filter by totalAmount range
+  if (minTotalAmount || maxTotalAmount) {
+    query.totalAmount = {};
+    if (minTotalAmount) query.totalAmount.$gte = parseFloat(minTotalAmount);
+    if (maxTotalAmount) query.totalAmount.$lte = parseFloat(maxTotalAmount);
+  }
+
+  // Filter by quantity range
+  if (minQuantity || maxQuantity) {
+    query.quantity = {};
+    if (minQuantity) query.quantity.$gte = parseFloat(minQuantity);
+    if (maxQuantity) query.quantity.$lte = parseFloat(maxQuantity);
+  }
+
+  // Filter by date range (startDate and endDate)
+  if (startDate || endDate) {
+    query.createdAt = {};
+    if (startDate) query.createdAt.$gte = new Date(startDate);
+    if (endDate) query.createdAt.$lte = new Date(endDate);
+  }
+
+  // Set sort options
+  let sortOptions = {};
+  sortOptions[sortBy] = order === 'asc' ? 1 : -1;
+
+  const skip = (page - 1) * limit;
+
   // Execute the query with pagination
   const transactions = await transactionModel
     .find(query)
-    .limit(limit * 1)
-    .skip((page - 1) * limit)
+    .sort(sortOptions)
+    .limit(parseInt(limit))
+    .skip(skip)
     .exec();
 
   // Count total documents that match the query
