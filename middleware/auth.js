@@ -12,7 +12,7 @@ exports.isVerify = catchAsyncError(async (req, res, next) => {
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
   if (!decoded) {
-    return next(new ErrorHandler('Invalid token', 400));
+    return next(new ErrorHandler('Invalid token', 403));
   }
 
   req.user = decoded;

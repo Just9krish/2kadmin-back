@@ -42,34 +42,17 @@ router.post('/seed-users-and-transactions', async (req, res) => {
         .json({ message: 'No customers or suppliers found in the database' });
     }
 
-    // Step 3: Create random transactions using the fetched users
+    // Step 3: Create transactions for each customer and supplier
     const transactionPromises = [];
 
-    for (let i = 0; i < 5; i++) {
-      let selectedUser, transactionType;
-
-      if (Math.random() < 0.5) {
-        // Select a random customer and set transaction type to "SELL"
-        selectedUser = getRandomItem(customers);
-        transactionType = 'SELL';
-      } else {
-        // Select a random supplier and set transaction type to "BUY"
-        selectedUser = getRandomItem(suppliers);
-        transactionType = 'BUY';
-      }
-
-      // Randomly select transaction data from the sample
+    // Create SELL transactions for customers
+    for (const customer of customers) {
       const randomTransactionData = getRandomItem(transactionSampleData);
 
-      // Create the transaction object
       const transaction = new transactionModel({
-        transactionType,
-        customer: transactionType === 'SELL' ? selectedUser._id : null,
-        supplier: transactionType === 'BUY' ? selectedUser._id : null,
-        crusherNo:
-          transactionType === 'BUY'
-            ? `CRUSH${Math.floor(Math.random() * 1000)}`
-            : null,
+        transactionType: 'SELL',
+        customer: customer._id,
+        supplier: null,
         material: randomTransactionData.material,
         quantity: randomTransactionData.quantity,
         rate: randomTransactionData.rate,
@@ -83,17 +66,38 @@ router.post('/seed-users-and-transactions', async (req, res) => {
 
       transactionPromises.push(transaction.save());
 
-      if (transactionType === 'SELL') {
-        // Update pending amount for customer
-        await userModel.findByIdAndUpdate(selectedUser._id, {
-          $inc: { pending: randomTransactionData.pendingAmount },
-        });
-      } else if (transactionType === 'BUY') {
-        // Update pending amount for supplier
-        await userModel.findByIdAndUpdate(selectedUser._id, {
-          $inc: { pending: randomTransactionData.pendingAmount },
-        });
-      }
+      // Update pending amount for the customer
+      await userModel.findByIdAndUpdate(customer._id, {
+        $inc: { pending: randomTransactionData.pendingAmount },
+      });
+    }
+
+    // Create BUY transactions for suppliers
+    for (const supplier of suppliers) {
+      const randomTransactionData = getRandomItem(transactionSampleData);
+
+      const transaction = new transactionModel({
+        transactionType: 'BUY',
+        customer: null,
+        supplier: supplier._id,
+        crusherNo: `CRUSH${Math.floor(Math.random() * 1000)}`,
+        material: randomTransactionData.material,
+        quantity: randomTransactionData.quantity,
+        rate: randomTransactionData.rate,
+        passNumber: randomTransactionData.passNumber,
+        vehicleNumber: randomTransactionData.vehicleNumber,
+        location: randomTransactionData.location,
+        amountPaid: randomTransactionData.amountPaid,
+        pendingAmount: randomTransactionData.pendingAmount,
+        totalAmount: randomTransactionData.totalAmount,
+      });
+
+      transactionPromises.push(transaction.save());
+
+      // Update pending amount for the supplier
+      await userModel.findByIdAndUpdate(supplier._id, {
+        $inc: { pending: randomTransactionData.pendingAmount },
+      });
     }
 
     // Wait for all transactions to be saved
