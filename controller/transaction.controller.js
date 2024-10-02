@@ -109,7 +109,7 @@ exports.createTransaction = catchAsyncError(async (req, res, next) => {
   sendResponse({
     res,
     status: true,
-    code: 200,
+    code: 201,
     message: `Transaction ${transactionType}ED successfully`,
     data: {
       transaction,

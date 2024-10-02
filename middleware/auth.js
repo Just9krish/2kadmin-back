@@ -7,12 +7,12 @@ exports.isVerify = catchAsyncError(async (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
-    return next(new ErrorHandler('Please login to continue', 400));
+    return next(new ErrorHandler('Please login to continue', 401));
   }
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
   if (!decoded) {
-    return next(new ErrorHandler('Invalid token', 403));
+    return next(new ErrorHandler('Invalid token', 401));
   }
 
   req.user = decoded;
