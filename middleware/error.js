@@ -33,13 +33,13 @@ module.exports = (err, req, res, next) => {
   // Handle wrong jwt error
   if (err.name === 'JsonWebTokenError') {
     const message = `Your URL is invalid. Please try again later`;
-    err = new ErrorHandler(message, 400);
+    err = new ErrorHandler(message, 401);
   }
 
   // Handle expired jwt error
   if (err.name === 'TokenExpiredError') {
     const message = `Your URL is expired. Please try again later`;
-    err = new ErrorHandler(message, 400);
+    err = new ErrorHandler(message, 401);
   }
 
   //const errorObject = err.toObject();
