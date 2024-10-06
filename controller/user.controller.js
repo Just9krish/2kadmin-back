@@ -170,7 +170,7 @@ exports.getUser = catchAsyncError(async (req, res, next) => {
     res,
     status: true,
     code: 200,
-    data: { user },
+    data: user,
     message: 'User fetched successfully',
   });
 });

@@ -11,7 +11,7 @@ const router = require('express').Router();
 
 router.post('/createUser', isVerify, createUser);
 
-router.post('/gerSingleUserbyId', isVerify, getUser);
+router.post('/getSingleUserById', isVerify, getUser);
 
 router.post('/deleteUserById', isVerify, deleteUser);
 
