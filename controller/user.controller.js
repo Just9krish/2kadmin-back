@@ -71,7 +71,7 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
   sendResponse({
     res,
     status: true,
-    code: 200,
+    code: 201,
     data: { user },
     message: `${type} updated successfully`,
   });
@@ -144,7 +144,7 @@ exports.getAllUsers = catchAsyncError(async (req, res, next) => {
   sendResponse({
     res,
     status: true,
-    code: 200,
+    code: 201,
     data: {
       list: users,
       total: userCount,
