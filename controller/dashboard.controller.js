@@ -1,4 +1,5 @@
 const catchAsyncError = require('../middleware/catchAsyncError');
+const paymentLogModel = require('../models/paymentLog.model');
 const transactionModel = require('../models/transaction.model');
 const sendResponse = require('../utils/sendResponse');
 
@@ -61,12 +62,27 @@ exports.dashboardStats = catchAsyncError(async (req, res) => {
     },
   ]);
 
+  const payments = await paymentLogModel.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: firstDay, $lte: lastDay },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalPayments: { $sum: '$amount' },
+      },
+    },
+  ]);
+
   const totalSellAmount =
     sellTransactions.length > 0 ? sellTransactions[0].totalSellAmount : 0;
   const totalBuyAmount =
     buyTransactions.length > 0 ? buyTransactions[0].totalBuyAmount : 0;
+  const totalPayments = payments.length > 0 ? payments[0].totalPayments : 0;
 
-  const profitLoss = totalSellAmount - totalBuyAmount;
+  const profitLoss = totalSellAmount - totalBuyAmount + totalPayments;
 
   // Send the response
   sendResponse({
