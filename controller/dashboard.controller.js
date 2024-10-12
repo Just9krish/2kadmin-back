@@ -1,88 +1,50 @@
 const catchAsyncError = require('../middleware/catchAsyncError');
-const paymentLogModel = require('../models/paymentLog.model');
-const transactionModel = require('../models/transaction.model');
+const userModel = require('../models/user.model');
 const sendResponse = require('../utils/sendResponse');
-
-// Utility function to get the first and last day of the current month
-const getMonthDateRange = () => {
-  const now = new Date();
-  const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of the month
-  return { firstDay, lastDay };
-};
 
 // Dashboard API
 exports.dashboardStats = catchAsyncError(async (req, res) => {
-  const { firstDay, lastDay } = getMonthDateRange();
+  // 1. Count total unique customers (users with type 'customer')
+  const customerCount = await userModel.countDocuments({ type: 'customer' });
 
-  // 1. Count unique customers who made SELL transactions this month
-  const customerCount = await transactionModel
-    .distinct('customer', {
-      transactionType: 'SELL',
-      createdAt: { $gte: firstDay, $lte: lastDay },
-    })
-    .countDocuments();
+  // 2. Count total unique suppliers (users with type 'supplier')
+  const supplierCount = await userModel.countDocuments({ type: 'supplier' });
 
-  // 2. Count unique suppliers who made BUY transactions this month
-  const supplierCount = await transactionModel
-    .distinct('supplier', {
-      transactionType: 'BUY',
-      createdAt: { $gte: firstDay, $lte: lastDay },
-    })
-    .countDocuments();
-
-  // 3. Calculate profit/loss
-  const sellTransactions = await transactionModel.aggregate([
+  // 3. Calculate total pending amounts for customers
+  const totalCustomerPending = await userModel.aggregate([
     {
-      $match: {
-        transactionType: 'SELL',
-        createdAt: { $gte: firstDay, $lte: lastDay },
-      },
+      $match: { type: 'customer' },
     },
     {
       $group: {
         _id: null,
-        totalSellAmount: { $sum: '$amountPaid' }, // Sum the amountPaid for SELL transactions
+        totalPendingAmount: { $sum: '$pending' }, // Sum the 'pending' field for customers
       },
     },
   ]);
 
-  const buyTransactions = await transactionModel.aggregate([
+  // 4. Calculate total pending amounts for suppliers
+  const totalSupplierPending = await userModel.aggregate([
     {
-      $match: {
-        transactionType: 'BUY',
-        createdAt: { $gte: firstDay, $lte: lastDay },
-      },
+      $match: { type: 'supplier' },
     },
     {
       $group: {
         _id: null,
-        totalBuyAmount: { $sum: '$amountPaid' },
+        totalPendingAmount: { $sum: '$pending' }, // Sum the 'pending' field for suppliers
       },
     },
   ]);
 
-  const payments = await paymentLogModel.aggregate([
-    {
-      $match: {
-        createdAt: { $gte: firstDay, $lte: lastDay },
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        totalPayments: { $sum: '$amount' },
-      },
-    },
-  ]);
-
-  const totalSellAmount =
-    sellTransactions.length > 0 ? sellTransactions[0].totalSellAmount : 0;
-  const totalBuyAmount =
-    buyTransactions.length > 0 ? buyTransactions[0].totalBuyAmount : 0;
-  const totalPayments = payments.length > 0 ? payments[0].totalPayments : 0;
-
-  const profitLoss = totalSellAmount - totalBuyAmount + totalPayments;
+  // Extract total pending amounts from the aggregation results
+  const totalCustomerPendingAmount =
+    totalCustomerPending.length > 0
+      ? totalCustomerPending[0].totalPendingAmount
+      : 0;
+  const totalSupplierPendingAmount =
+    totalSupplierPending.length > 0
+      ? totalSupplierPending[0].totalPendingAmount
+      : 0;
 
   // Send the response
   sendResponse({
@@ -93,7 +55,8 @@ exports.dashboardStats = catchAsyncError(async (req, res) => {
     data: {
       customerCount,
       supplierCount,
-      profitLoss,
+      totalCustomerPendingAmount,
+      totalSupplierPendingAmount,
     },
   });
 });
