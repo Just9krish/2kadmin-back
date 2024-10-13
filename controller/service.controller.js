@@ -25,7 +25,7 @@ exports.addService = catchAsyncError(async (req, res, next) => {
   sendResponse({
     res,
     status: true,
-    code: 200,
+    code: 201,
     message: 'Service added successfully',
   });
 });
