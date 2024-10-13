@@ -15,7 +15,9 @@ exports.adminLogin = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler('Please enter a valid email', 400));
   }
 
-  const admin = await adminModel.findOne({ email });
+  const admin = await adminModel.findOne({
+    email: { $regex: new RegExp(email, 'i') },
+  });
 
   if (!admin) {
     return next(new ErrorHandler('Invalid email or password', 400));
@@ -58,7 +60,7 @@ exports.signUp = catchAsyncError(async (req, res, next) => {
   }
 
   const admin = await adminModel.create({
-    email,
+    email: email.toString().trim().toLowerCase(),
     password,
   });
 
